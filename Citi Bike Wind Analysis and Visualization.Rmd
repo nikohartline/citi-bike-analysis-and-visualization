@@ -1,0 +1,51 @@
+---
+output: pdf_document
+---
+
+```{r Wind Plots, echo=FALSE,warning=FALSE,message=FALSE,fig.width=6, fig.height=7}
+
+require(ggplot2)
+require(cowplot)
+require(data.table)
+
+fread("Output/Wind Speed Aggregates.csv") -> WindSpeedAggregates
+  
+#Average total trip duration per day compared to wind speed bins (shows decline as wind speeds get faster)
+
+#A default theme to use for ggplot
+ThemeDefault=theme_bw()+
+              theme(text=element_text(color="black"),
+                axis.text=element_text(size=11),
+                axis.title=element_text(size=12),
+                axis.title.y=element_text(vjust=1),
+                axis.title.x=element_text(vjust=-1,size=15),
+                plot.title=element_text(size=15,hjust=0.5))
+
+WindSpeedAggregates$AvgWindSpeedRange=factor(WindSpeedAggregates$AvgWindSpeedRange,levels=WindSpeedAggregates$AvgWindSpeedRange)
+
+
+PLOT1=ggplot()+
+  geom_bar(aes(x=AvgWindSpeedRange,y=AverageNumberofTrips/1000),data=WindSpeedAggregates,stat="identity",fill="mediumpurple1",color="black",size=.8,show.legend=FALSE)+
+  ylab("Average Number of Trips (thousands)")+
+  xlab(NULL)+
+  ggtitle("Wind Speed Compared to Average Daily \nCount and Duration of CitiBike Trips")+
+  ThemeDefault
+
+PLOT2=ggplot()+
+  geom_bar(aes(x=AvgWindSpeedRange,y=AverageTripDuration/60),data=WindSpeedAggregates,stat="identity",fill="wheat2",color="black",size=.8,show.legend=FALSE)+
+  ylab("Average Trip Duration (minutes)")+
+  xlab("Wind Speed (mph)")+
+  ggtitle(NULL)+
+  ThemeDefault
+
+plot_grid(PLOT1,PLOT2,align="v",nrow=2)
+
+
+```
+
+  
+Data were retrieved from <https://www.citibikenyc.com/system-data> and <https://www.ncdc.noaa.gov/cdo-web/>
+
+These graphs provide a quick look at the influence of wind speed on the number and duration of Citi Bike trips taken. Wind speed doesn't appear to influence the average trip's duration, but does correspond with a dramatic decrease in daily trips taken on days with high wind speed (this relationship was significant: t(240) =  -8.55, p < 0.001). The nature of the relationship between average wind speed and daily bike trips is not clear, however, as temperature is a confounding variable that may also impact daily bike trips and has a strong negative correlation with average wind speed (Pearson's r: t(240) = -8.7, p < 0.001). Other weather variables (precipitation, humidity, cloud cover etc.) may also provide further complication. An orthogonal transformation of the data for Principal Components Analysis can clarify these relationships further, although additional data may be required.
+
+
